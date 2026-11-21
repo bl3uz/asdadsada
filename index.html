@@ -2,350 +2,601 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AestheticArch // Hyprland Rice</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/xterm@5.3.0/css/xterm.css" />
-    <script src="https://cdn.jsdelivr.net/npm/xterm@5.3.0/lib/xterm.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/xterm-addon-fit@0.8.0/lib/xterm-addon-fit.js"></script>
-    
+    <title>Selene OS // Authentication Gateway</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap');
-
+        * { box-sizing: border-box; }
         body {
-            background-color: #1a1b26;
+            background: #16161e;
             color: #c0caf5;
-            font-family: 'JetBrains Mono', monospace;
-            /* Exact grid tile background from screenshot */
-            background-image: 
-                linear-gradient(to right, rgba(122, 162, 247, 0.04) 1px, transparent 1px),
-                linear-gradient(to bottom, rgba(122, 162, 247, 0.04) 1px, transparent 1px);
-            background-size: 36px 36px;
-            overflow: hidden;
-            height: 100vh;
+            font-family: monospace;
             margin: 0;
+            padding: 0;
+            height: 100vh;
             display: flex;
+            justify-content: center;
+            align-items: center;
+            background-image: 
+                linear-gradient(to right, rgba(255,255,255,0.025) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(255,255,255,0.025) 1px, transparent 1px);
+            background-size: 32px 32px;
+            overflow: hidden;
         }
 
-        /* Distinct thick borders and deep background blocks matching rxyhn's ricing style */
-        .rice-box {
-            background-color: #1f2335;
-            border: 2px solid #292e42;
+        /* --- AUTH LOGIN / REGISTER SCREEN --- */
+        #auth-layer {
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            background: #16161e;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+        .auth-card {
+            width: 360px;
+            background: #1a1b26;
+            border: 1px solid #292e42;
             border-radius: 8px;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+            padding: 24px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.6);
+            text-align: center;
+        }
+        .auth-ascii {
+            font-size: 8px;
+            line-height: 9px;
+            color: #7dcfff;
+            margin-bottom: 16px;
+            white-space: pre;
+        }
+        .auth-input-group {
+            margin-bottom: 14px;
+            text-align: left;
+        }
+        .auth-input-group label {
+            display: block;
+            font-size: 11px;
+            color: #565f89;
+            margin-bottom: 4px;
+        }
+        .auth-input-group input {
+            width: 100%;
+            background: #101014;
+            border: 1px solid #414868;
+            border-radius: 4px;
+            padding: 8px 10px;
+            color: #c0caf5;
+            font-family: monospace;
+            font-size: 12px;
+            outline: none;
+        }
+        .auth-input-group input:focus { border-color: #7aa2f7; }
+        
+        .auth-btn {
+            width: 100%;
+            background: #7aa2f7;
+            color: #1a1b26;
+            border: none;
+            border-radius: 4px;
+            padding: 9px;
+            font-family: monospace;
+            font-weight: bold;
+            font-size: 12px;
+            cursor: pointer;
+            margin-top: 6px;
+        }
+        .auth-btn:hover { background: #89b4fa; }
+        .auth-switch {
+            margin-top: 14px;
+            font-size: 11px;
+            color: #565f89;
+        }
+        .auth-switch span { color: #7dcfff; cursor: pointer; text-decoration: underline; }
+        #auth-error {
+            color: #f7768e;
+            font-size: 11px;
+            margin-top: 10px;
+            min-height: 15px;
         }
 
-        .left-bar {
-            background-color: #16161e;
-            border-right: 2px solid #292e42;
+        /* --- DESKTOP RICE CONTAINER --- */
+        #desktop-layer {
+            display: none; /* Hidden until authenticated */
+            width: 920px;
+            height: 520px;
+            grid-template-columns: 44px 230px 145px 145px 145px 156px;
+            grid-template-rows: 155px 110px 110px 110px;
+            gap: 12px;
+            position: relative;
         }
 
-        /* Scrollbars */
-        ::-webkit-scrollbar { width: 4px; }
-        ::-webkit-scrollbar-thumb { background: #414868; border-radius: 2px; }
+        .widget {
+            background-color: #1a1b26;
+            border: 1px solid #292e42;
+            border-radius: 6px;
+            padding: 12px;
+            position: relative;
+        }
+
+        .dock-bar {
+            grid-column: 1;
+            grid-row: 1 / span 4;
+            background-color: #101014;
+            border: 1px solid #292e42;
+            border-radius: 6px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 0;
+        }
+        .dock-icons {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            font-size: 13px;
+            color: #565f89;
+        }
+
+        .w-profile {
+            grid-column: 2;
+            grid-row: 1 / span 2;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+        .ascii-moon {
+            font-family: monospace;
+            font-size: 8px;
+            line-height: 9px;
+            color: #7dcfff;
+            margin-bottom: 6px;
+            white-space: pre;
+            text-align: center;
+        }
+
+        .w-stat-1 { grid-column: 3; grid-row: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .w-stat-2 { grid-column: 4; grid-row: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        
+        .ring-mock {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            border: 3px solid #292e42;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            font-weight: bold;
+        }
+
+        .w-music {
+            grid-column: 5 / span 2;
+            grid-row: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .w-clock {
+            grid-column: 3 / span 2;
+            grid-row: 2;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+
+        .w-quote {
+            grid-column: 2;
+            grid-row: 3 / span 2;
+            font-size: 11px;
+            line-height: 1.4;
+            color: #a9b1d6;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .w-weather {
+            grid-column: 3 / span 2;
+            grid-row: 3;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .w-apps {
+            grid-column: 6;
+            grid-row: 1 / span 4;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-around;
+            font-size: 14px;
+            color: #787c99;
+        }
+        .w-apps span { cursor: pointer; transition: color 0.1s; }
+        .w-apps span:hover { color: #fff; }
+
+        .w-extra-1 { grid-column: 3 / span 2; grid-row: 4; display: flex; align-items: center; justify-content: space-between; font-size: 11px; color: #565f89; }
+        .w-extra-2 { grid-column: 5; grid-row: 2 / span 3; display: flex; flex-direction: column; justify-content: space-between; font-size: 11px; }
+
+        .text-dim { color: #565f89; font-size: 10px; }
+        .text-accent { color: #7aa2f7; }
+
+        /* Embedded Terminal Modal */
+        #terminal-modal {
+            position: absolute;
+            top: 50px;
+            left: 100px;
+            width: 600px;
+            height: 340px;
+            background: #1a1b26;
+            border: 2px solid #7aa2f7;
+            border-radius: 6px;
+            display: none;
+            flex-direction: column;
+            z-index: 999;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.7);
+        }
+        .term-header {
+            background: #101014;
+            padding: 6px 10px;
+            font-size: 11px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #292e42;
+            color: #7aa2f7;
+        }
+        .term-body {
+            flex: 1;
+            padding: 10px;
+            overflow-y: auto;
+            font-size: 12px;
+            white-space: pre-wrap;
+            color: #c0caf5;
+        }
+        .term-input-row {
+            display: flex;
+            padding: 6px 10px;
+            background: #141419;
+            border-top: 1px solid #292e42;
+        }
+        .term-input-row input {
+            background: transparent;
+            border: none;
+            color: #c0caf5;
+            font-family: monospace;
+            font-size: 12px;
+            outline: none;
+            width: 100%;
+        }
     </style>
 </head>
 <body>
 
-    <!-- Far-Left Hyprland Workspace / Dock Bar -->
-    <aside class="left-bar w-14 h-screen flex flex-col justify-between items-center py-5 z-30 select-none flex-shrink-0">
-        <div class="flex flex-col items-center gap-4 text-xs font-bold text-[#7aa2f7]">
-            <span class="cursor-pointer">🚀</span>
-        </div>
-        <div class="flex flex-col items-center gap-3 text-xs">
-            <span id="ws-btn-1" class="w-6 h-6 flex items-center justify-center rounded bg-[#292e42] text-[#7aa2f7] font-bold cursor-pointer" onclick="switchWorkspace(1)">1</span>
-            <span id="ws-btn-2" class="w-6 h-6 flex items-center justify-center rounded text-[#565f89] hover:text-white cursor-pointer" onclick="switchWorkspace(2)">2</span>
-        </div>
-        <div class="flex flex-col items-center gap-4 text-sm text-[#f7768e]">
-            <span class="cursor-pointer hover:scale-110 transition" title="Power" onclick="alert('Shutting down system...')">⏻</span>
-            <span class="text-[9px] text-[#565f89] -rotate-90 font-bold tracking-widest" id="dock-clock">18:28</span>
-        </div>
-    </aside>
-
-    <!-- Main Viewport Container -->
-    <div class="flex-1 p-6 relative overflow-hidden flex items-center justify-center">
-
-        <!-- ================= WORKSPACE 1 (Top Image Layout) ================= -->
-        <div id="workspace-1" class="w-full max-w-5xl h-[520px] hidden grid-cols-12 gap-4 items-center">
+    <!-- ================= AUTHENTICATION GATEWAY ================= -->
+    <div id="auth-layer">
+        <div class="auth-card">
+            <div class="auth-ascii">
+  _...._
+.:::::::.
+:::::::::::
+`::::::::'
+  `\':::\'''</div>
+            <h2 id="auth-form-title" style="font-size: 14px; color: #7aa2f7; margin-bottom: 16px;">SELENE OS // LOGIN</h2>
             
-            <!-- Left side vertical stack -->
-            <div class="col-span-4 flex flex-col gap-4">
-                <div class="rice-box p-4 text-center">
-                    <p class="text-[10px] text-[#565f89]">rxyhn@aestheticarch</p>
-                    <p class="text-xs font-bold text-[#7aa2f7] mt-1">~/Tokyo-Night/</p>
-                </div>
-                <div class="rice-box p-6 text-center">
-                    <h1 class="text-2xl font-black tracking-widest text-[#7dcfff]">AESTHETIC</h1>
-                </div>
-                <div class="rice-box p-4 flex justify-between items-center text-xs">
-                    <div>
-                        <p class="text-[#7aa2f7] font-bold">Arch Info</p>
-                        <p class="text-[10px] text-[#565f89] mt-1">os: linux</p>
-                        <p class="text-[10px] text-[#565f89]">wm: hyprland</p>
-                    </div>
-                    <div class="text-right">
-                        <p class="text-xs font-bold text-[#f7768e]">974 / 3532 MB</p>
-                    </div>
-                </div>
+            <div class="auth-input-group">
+                <label>Username Handle</label>
+                <input type="text" id="inp-user" placeholder="e.g. rxyhn" autocomplete="off">
+            </div>
+            
+            <div class="auth-input-group">
+                <label>Access Password</label>
+                <input type="password" id="inp-pass" placeholder="••••••••">
             </div>
 
-            <!-- Right side code editor window layout -->
-            <div class="col-span-8 rice-box h-full flex flex-col overflow-hidden">
-                <div class="bg-[#16161e] px-4 py-2 border-b border-[#292e42] flex justify-between items-center text-xs">
-                    <span class="text-[#565f89]">nvim init.lua</span>
-                    <span class="text-[#7aa2f7]">lua/config</span>
-                </div>
-                <div class="p-4 bg-[#141419] font-mono text-[11px] text-[#565f89] flex-1 overflow-y-auto leading-relaxed">
-                    <p class="text-[#bb9af7]">1 <span class="text-[#c0caf5]">-- Maintained By https://github.com/rxyhn</span></p>
-                    <p class="text-[#bb9af7]">2 <span class="text-[#c0caf5]">local defcustom = os.getenv("HOME") .. "/.config/eww/"</span></p>
-                    <p class="text-[#bb9af7]">3 </p>
-                    <p class="text-[#bb9af7]">4 <span class="text-[#e0af68]">local</span> widgets = require("eww.widgets")</p>
-                    <p class="text-[#bb9af7]">5 widgets.setup({</p>
-                    <p class="text-[#bb9af7]">6     bar = { position = "left", size = "14px" },</p>
-                    <p class="text-[#bb9af7]">7     theme = "tokyo-night-dark",</p>
-                    <p class="text-[#bb9af7]">8     animation = { enabled = true, speed = 0.15 }</p>
-                    <p class="text-[#bb9af7]">9 })</p>
-                </div>
-            </div>
+            <button class="auth-btn" id="auth-submit-btn" onclick="handleAuthAction()">INITIALIZE SESSION</button>
+            <div id="auth-error"></div>
 
+            <div class="auth-switch" id="auth-switch-text">
+                No account? <span onclick="toggleAuthMode()">Register user node</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= DESKTOP RICE ENVIRONMENT ================= -->
+    <div id="desktop-layer" class="rice-desktop">
+        
+        <!-- Dock Bar -->
+        <div class="dock-bar">
+            <span style="color: #7aa2f7; font-weight:bold;">☾</span>
+            <div class="dock-icons">
+                <span title="Workspace 1" style="color:#7aa2f7; font-weight:bold;">1</span>
+            </div>
+            <span style="color: #f7768e; cursor:pointer;" title="Log Out / Lock" onclick="logoutSession()">⏻</span>
         </div>
 
+        <!-- 1. Profile Widget with ASCII Moon Logo -->
+        <div class="widget w-profile">
+            <div class="ascii-moon">
+  _...._
+.:::::::.
+:::::::::::
+`::::::::'
+  `\':::\'''</div>
+            <div style="font-size: 12px; font-weight: bold; color: #fff;">Selene OS</div>
+            <div id="active-username" class="text-dim">rxyhn</div>
+        </div>
 
-        <!-- ================= WORKSPACE 2 (Bottom Image Layout - Exact Match) ================= -->
-        <div id="workspace-2" class="w-full max-w-[960px] h-[520px] grid grid-cols-12 gap-3.5 items-center">
-            
-            <!-- Column 1: Big Profile Card -->
-            <div class="col-span-4 rice-box p-6 flex flex-col items-center text-center justify-center h-full">
-                <div class="w-28 h-28 rounded-xl bg-[#292e42] overflow-hidden border-2 border-[#414868] mb-4">
-                    <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=300" alt="avatar" class="w-full h-full object-cover contrast-125 grayscale">
-                </div>
-                <h2 class="text-sm font-bold text-white tracking-wide">AestheticArch</h2>
-                <p class="text-xs text-[#565f89] mt-0.5">rxyhn</p>
+        <!-- 2. Circular Stat Rings -->
+        <div class="widget w-stat-1">
+            <div id="cpu-ring" class="ring-mock" style="border-top-color: #7dcfff; border-left-color: #7dcfff;">24%</div>
+            <span class="text-dim" style="margin-top: 6px;">cpu</span>
+        </div>
+        <div class="widget w-stat-2">
+            <div id="vol-ring" class="ring-mock" style="border-top-color: #bb9af7; border-left-color: #bb9af7;">68%</div>
+            <span class="text-dim" style="margin-top: 6px;">audio</span>
+        </div>
+
+        <!-- 3. Music Player -->
+        <div class="widget w-music">
+            <div style="display:flex; justify-content:space-between;">
+                <span class="text-dim">mpd</span>
+                <span id="music-status" style="color: #bb9af7; font-size:10px;">paused</span>
             </div>
-
-            <!-- Column 2 & 3 Center Grid Area -->
-            <div class="col-span-6 grid grid-cols-6 gap-3.5 h-full">
-                
-                <!-- 4 Circular Gauges (Top Row) -->
-                <div class="rice-box col-span-3 p-3 flex flex-col items-center justify-center">
-                    <div class="w-10 h-10 rounded-full border-4 border-[#7dcfff] border-t-transparent flex items-center justify-center text-[10px] font-bold text-[#7dcfff]">24%</div>
-                    <span class="text-[10px] text-[#565f89] mt-2">CPU</span>
-                </div>
-                <div class="rice-box col-span-3 p-3 flex flex-col items-center justify-center">
-                    <div class="w-10 h-10 rounded-full border-4 border-[#bb9af7] border-t-transparent flex items-center justify-center text-[10px] font-bold text-[#bb9af7]">68%</div>
-                    <span class="text-[10px] text-[#565f89] mt-2">Volume</span>
-                </div>
-                <div class="rice-box col-span-3 p-3 flex flex-col items-center justify-center">
-                    <div class="w-10 h-10 rounded-full border-4 border-[#9ece6a] border-t-transparent flex items-center justify-center text-[10px] font-bold text-[#9ece6a]">82%</div>
-                    <span class="text-[10px] text-[#565f89] mt-2">Memory</span>
-                </div>
-                <div class="rice-box col-span-3 p-3 flex flex-col items-center justify-center">
-                    <div class="w-10 h-10 rounded-full border-4 border-[#e0af68] border-t-transparent flex items-center justify-center text-[10px] font-bold text-[#e0af68]">45%</div>
-                    <span class="text-[10px] text-[#565f89] mt-2">Light</span>
-                </div>
-
-                <!-- Clock Card -->
-                <div class="rice-box col-span-6 p-3 flex flex-col items-center justify-center">
-                    <div class="text-2xl font-black text-[#7dcfff] tracking-widest" id="live-clock">18:28</div>
-                    <div class="text-[10px] text-[#565f89] mt-0.5" id="live-date">02/17/22</div>
-                </div>
-
-                <!-- Quote Card (Bottom Left) -->
-                <div class="rice-box col-span-6 p-4 flex flex-col justify-center">
-                    <p class="text-[10px] italic text-[#c0caf5] leading-relaxed">"It is through science that we prove, but through intuition that we discover."</p>
-                    <p class="text-[9px] text-[#7aa2f7] mt-1.5 text-right">— Henri Poincaré</p>
-                </div>
-
-                <!-- Weather Card (Bottom Right) -->
-                <div class="rice-box col-span-6 p-4 flex flex-col justify-between">
-                    <div class="flex justify-between items-start">
-                        <div>
-                            <span class="text-[10px] font-bold text-[#e0af68]">Thursday</span>
-                            <div class="text-xs font-bold text-white mt-0.5">🌧️ 27°C</div>
-                        </div>
-                        <div class="text-right text-[9px] text-[#565f89]">
-                            <div>Host: Sleep in 81h</div>
-                        </div>
-                    </div>
-                </div>
-
+            <div>
+                <div id="track-name" style="font-size: 11px; font-weight:bold; color:#fff;">Lunar Nocturne</div>
+                <div class="text-dim">Selene Audio Daemon</div>
             </div>
-
-            <!-- Column 4: Music Player Box + Right Dock Icons Column -->
-            <div class="col-span-2 flex flex-col gap-3.5 h-full">
-                
-                <!-- Music Cassette Widget -->
-                <div class="rice-box p-3.5 flex flex-col justify-between flex-1">
-                    <div class="flex justify-between items-center text-[10px]">
-                        <span class="text-[#bb9af7] font-bold">Offline</span>
-                    </div>
-                    <div class="my-1 text-center">
-                        <div class="w-12 h-12 mx-auto bg-[#16161e] border border-[#292e42] rounded flex items-center justify-center text-lg mb-1">📼</div>
-                        <p class="text-[10px] font-bold text-white">Nothing Playing</p>
-                    </div>
-                    <div class="flex items-center justify-around text-xs text-[#7aa2f7] pt-2 border-t border-[#292e42]">
-                        <span class="cursor-pointer hover:text-white">⏮</span>
-                        <span class="font-bold cursor-pointer hover:text-white" id="play-btn" onclick="togglePlay()">▶</span>
-                        <span class="cursor-pointer hover:text-white">⏭</span>
-                    </div>
-                </div>
-
-                <!-- Vertical App Dock Column -->
-                <div class="rice-box p-2.5 flex flex-col justify-around items-center text-sm">
-                    <span class="cursor-pointer hover:text-white" title="Reload" onclick="location.reload()">🔄</span>
-                    <span class="cursor-pointer hover:text-[#f7768e]" title="Reddit" onclick="window.open('https://reddit.com','_blank')">🌐</span>
-                    <span class="cursor-pointer hover:text-[#7aa2f7]" title="Telegram" onclick="window.open('https://telegram.org','_blank')">✈️</span>
-                    <span class="cursor-pointer hover:text-[#9ece6a]" title="Terminal" onclick="toggleTerminal()">💻</span>
-                    <span class="cursor-pointer hover:text-[#7aa2f7]" title="Discord" onclick="window.open('https://discord.com','_blank')">💬</span>
-                    <span class="cursor-pointer hover:text-white" title="GitHub" onclick="window.open('https://github.com','_blank')">🐱</span>
-                </div>
-
+            <div style="display:flex; justify-content:space-around; font-size: 11px; color: #7aa2f7; border-top: 1px solid #292e42; padding-top:4px;">
+                <span style="cursor:pointer;" onclick="prevTrack()">⏮</span>
+                <span id="play-btn" style="cursor:pointer; font-weight:bold;" onclick="togglePlay()">▶</span>
+                <span style="cursor:pointer;" onclick="nextTrack()">⏭</span>
             </div>
+        </div>
 
+        <!-- 4. Clock Widget -->
+        <div class="widget w-clock">
+            <div id="live-clock" style="font-size: 24px; font-weight: bold; color: #7dcfff; letter-spacing: 2px;">18:28</div>
+            <div id="live-date" class="text-dim" style="margin-top: 2px;">02/17/22</div>
+        </div>
+
+        <!-- 5. Quote Widget -->
+        <div class="widget w-quote">
+            <div>
+                <span class="text-dim" style="display:block; margin-bottom:4px;">// selene.txt</span>
+                "In the deep quiet of the night, the digital moon reflects all code."
+            </div>
+            <div style="text-align: right; color: #7aa2f7;">— Selene Core</div>
+        </div>
+
+        <!-- 6. Weather Widget -->
+        <div class="widget w-weather">
+            <div>
+                <div style="font-size: 11px; font-weight:bold; color: #e0af68;">Lunar Cycle</div>
+                <div style="font-size: 12px; font-weight:bold; color: #fff;">🌕 Full Moon</div>
+            </div>
+            <div class="text-dim" style="text-align: right;">
+                Clear Orbit
+            </div>
+        </div>
+
+        <!-- Extras -->
+        <div class="widget w-extra-1">
+            <span>Host: Sleep in ∞</span>
+            <span class="text-accent" id="ram-usage">1.2GB</span>
+        </div>
+
+        <div class="widget w-extra-2">
+            <span class="text-dim">sys_kernel</span>
+            <div style="font-size: 10px; color: #9ece6a;">● stable</div>
+        </div>
+
+        <!-- Right App Dock Column -->
+        <div class="widget w-apps">
+            <span title="Reload Desktop" onclick="location.reload()">🔄</span>
+            <span title="Browser Mirror" onclick="window.open('https://github.com','_blank')">🌐</span>
+            <span title="Flight Log">✈️</span>
+            <span title="Open Terminal Shell" onclick="toggleTerminal()">💻</span>
+            <span title="Secure Comms">💬</span>
+            <span title="Repository Source" onclick="window.open('https://github.com','_blank')">🐱</span>
         </div>
 
     </div>
 
-    <!-- Interactive Terminal Window Overlay -->
-    <div id="terminal-window" class="absolute top-10 left-20 w-[650px] h-[350px] rice-box hidden flex flex-col z-50">
-        <div class="bg-[#16161e] px-4 py-2 flex justify-between items-center border-b border-[#292e42]">
-            <span class="text-xs text-[#7aa2f7] font-bold">kitty ~ zsh // terminal</span>
-            <button onclick="toggleTerminal()" class="text-xs text-[#f7768e] font-bold cursor-pointer">[X]</button>
+    <!-- Embedded Terminal Modal -->
+    <div id="terminal-modal">
+        <div class="term-header">
+            <span id="term-prompt-title">root@selene-os:~ (zsh)</span>
+            <span style="cursor:pointer; color:#f7768e; font-weight:bold;" onclick="toggleTerminal()">[X]</span>
         </div>
-        <div class="flex-1 p-2 bg-[#1a1b26] overflow-hidden" id="xterm-container"></div>
+        <div id="term-output" class="term-body">Selene OS [Version 4.1.0-release]
+Type 'help' for valid command scripts.
+</div>
+        <div class="term-input-row">
+            <span style="color: #7aa2f7; margin-right: 6px;" id="term-ps1">selene:~$</span>
+            <input type="text" id="term-input" autocomplete="off" spellcheck="false">
+        </div>
     </div>
 
-    <!-- Script Engine -->
     <script>
-        // Workspace Switcher Logic (Lets you toggle between top and bottom layout pictures)
-        function switchWorkspace(num) {
-            const ws1 = document.getElementById('workspace-1');
-            const ws2 = document.getElementById('workspace-2');
-            const btn1 = document.getElementById('ws-btn-1');
-            const btn2 = document.getElementById('ws-btn-2');
+        // --- AUTHENTICATION & USER DB LOGIC ---
+        let isRegistering = false;
 
-            if (num === 1) {
-                ws1.style.display = 'grid';
-                ws2.style.display = 'none';
-                btn1.className = "w-6 h-6 flex items-center justify-center rounded bg-[#292e42] text-[#7aa2f7] font-bold cursor-pointer";
-                btn2.className = "w-6 h-6 flex items-center justify-center rounded text-[#565f89] hover:text-white cursor-pointer";
+        function toggleAuthMode() {
+            isRegistering = !isRegistering;
+            document.getElementById('auth-form-title').innerText = isRegistering ? "SELENE OS // REGISTER" : "SELENE OS // LOGIN";
+            document.getElementById('auth-submit-btn').innerText = isRegistering ? "CREATE USER NODE" : "INITIALIZE SESSION";
+            document.getElementById('auth-switch-text').innerHTML = isRegistering ? 
+                `Existing node? <span onclick="toggleAuthMode()">Login to session</span>` : 
+                `No account? <span onclick="toggleAuthMode()">Register user node</span>`;
+            document.getElementById('auth-error').innerText = "";
+        }
+
+        function handleAuthAction() {
+            let user = document.getElementById('inp-user').value.trim();
+            let pass = document.getElementById('inp-pass').value.trim();
+            let errBox = document.getElementById('auth-error');
+
+            if(!user || !pass) {
+                errBox.innerText = "Error: Fields cannot be left blank.";
+                return;
+            }
+
+            // Retrieve database from localStorage
+            let db = JSON.parse(localStorage.getItem('selene_users') || "{}");
+
+            if(isRegistering) {
+                if(db[user]) {
+                    errBox.innerText = "Error: Username node already exists.";
+                    return;
+                }
+                // Register user
+                db[user] = pass;
+                localStorage.setItem('selene_users', JSON.stringify(db));
+                alert("Node successfully created! Logging you in...");
             } else {
-                ws1.style.display = 'none';
-                ws2.style.display = 'grid';
-                btn2.className = "w-6 h-6 flex items-center justify-center rounded bg-[#292e42] text-[#7aa2f7] font-bold cursor-pointer";
-                btn1.className = "w-6 h-6 flex items-center justify-center rounded text-[#565f89] hover:text-white cursor-pointer";
+                // Login check
+                if(!db[user] || db[user] !== pass) {
+                    errBox.innerText = "Error: Invalid credentials or node not found.";
+                    return;
+                }
+            }
+
+            // Set active session and launch desktop
+            localStorage.setItem('selene_active_user', user);
+            bootDesktop(user);
+        }
+
+        function bootDesktop(username) {
+            document.getElementById('auth-layer').style.display = 'none';
+            document.getElementById('desktop-layer').style.display = 'grid';
+            document.getElementById('active-username').innerText = username;
+            document.getElementById('term-prompt-title').innerText = `${username}@selene-os:~ (zsh)`;
+            document.getElementById('term-ps1').innerText = `${username}:~$`;
+        }
+
+        function logoutSession() {
+            localStorage.removeItem('selene_active_user');
+            location.reload();
+        }
+
+        // Auto-login check on page load
+        window.onload = () => {
+            let active = localStorage.getItem('selene_active_user');
+            // Seed a default mock user if database is completely empty
+            let db = JSON.parse(localStorage.getItem('selene_users') || "{}");
+            if(Object.keys(db).length === 0) {
+                db['rxyhn'] = 'password123';
+                localStorage.setItem('selene_users', JSON.stringify(db));
+            }
+
+            if(active && db[active]) {
+                bootDesktop(active);
             }
         }
 
-        // Initialize default view to Workspace 2 (the bottom image layout)
-        switchWorkspace(2);
+
+        // --- DESKTOP RICE SYSTEM SCRIPTS ---
 
         // Clock & Date loop
-        function updateClock() {
-            const now = new Date();
-            const timeStr = now.toTimeString().split(' ')[0].slice(0, 5);
-            document.getElementById('live-clock').innerText = timeStr;
-            document.getElementById('dock-clock').innerText = timeStr;
-            
-            const mm = String(now.getMonth() + 1).padStart(2, '0');
-            const dd = String(now.getDate()).padStart(2, '0');
-            const yy = String(now.getFullYear()).slice(-2);
+        setInterval(() => {
+            const d = new Date();
+            document.getElementById('live-clock').innerText = d.toTimeString().split(' ')[0].slice(0, 5);
+            const mm = String(d.getMonth() + 1).padStart(2, '0');
+            const dd = String(d.getDate()).padStart(2, '0');
+            const yy = String(d.getFullYear()).slice(-2);
             document.getElementById('live-date').innerText = `${mm}/${dd}/${yy}`;
-        }
-        setInterval(updateClock, 1000);
-        updateClock();
+        }, 1000);
 
+        // Music Player Mock
         let isPlaying = false;
+        const tracks = ["Lunar Nocturne", "Ambient Orbit", "Synthesized Craters", "Midnight Terminal"];
+        let trackIdx = 0;
+
         function togglePlay() {
             isPlaying = !isPlaying;
             document.getElementById('play-btn').innerText = isPlaying ? '⏸' : '▶';
+            document.getElementById('music-status').innerText = isPlaying ? 'playing' : 'paused';
+            document.getElementById('music-status').style.color = isPlaying ? '#9ece6a' : '#bb9af7';
+        }
+        function nextTrack() {
+            trackIdx = (trackIdx + 1) % tracks.length;
+            document.getElementById('track-name').innerText = tracks[trackIdx];
+        }
+        function prevTrack() {
+            trackIdx = (trackIdx - 1 + tracks.length) % tracks.length;
+            document.getElementById('track-name').innerText = tracks[trackIdx];
         }
 
-        // Terminal Handling Logic
-        let termInitialized = false;
-        let term, fitAddon;
+        // Metrics Fluctuations
+        setInterval(() => {
+            let cpu = Math.floor(Math.random() * 25) + 12;
+            let vol = Math.floor(Math.random() * 15) + 60;
+            document.getElementById('cpu-ring').innerText = cpu + '%';
+            document.getElementById('vol-ring').innerText = vol + '%';
+            document.getElementById('ram-usage').innerText = (1.1 + (Math.random() * 0.3)).toFixed(1) + 'GB';
+        }, 3000);
 
+        // Terminal Drawer Mechanism
         function toggleTerminal() {
-            const win = document.getElementById('terminal-window');
-            if (win.classList.contains('hidden')) {
-                win.classList.remove('hidden');
-                if (!termInitialized) {
-                    initTerminal();
-                    termInitialized = true;
-                } else {
-                    fitAddon.fit();
-                }
+            const modal = document.getElementById('terminal-modal');
+            if (modal.style.display === 'flex') {
+                modal.style.display = 'none';
             } else {
-                win.classList.add('hidden');
+                modal.style.display = 'flex';
+                document.getElementById('term-input').focus();
             }
         }
 
-        function initTerminal() {
-            term = new Terminal({
-                cursorBlink: true,
-                fontSize: 12,
-                fontFamily: 'JetBrains Mono, monospace',
-                theme: {
-                    background: '#1a1b26',
-                    foreground: '#c0caf5',
-                    cursor: '#f7768e',
-                    black: '#15161e',
-                    red: '#f7768e',
-                    green: '#9ece6a',
-                    yellow: '#e0af68',
-                    blue: '#7aa2f7',
-                    magenta: '#bb9af7',
-                    cyan: '#7dcfff',
-                    white: '#a9b1d6'
-                }
-            });
+        const termInput = document.getElementById('term-input');
+        const termOutput = document.getElementById('term-output');
 
-            fitAddon = new FitAddon.FitAddon();
-            term.loadAddon(fitAddon);
-            term.open(document.getElementById('xterm-container'));
-            fitAddon.fit();
+        termInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                let cmd = termInput.value.trim();
+                let activeUser = localStorage.getItem('selene_active_user') || 'root';
+                termOutput.innerText += `\n${activeUser}:~$ ${cmd}\n`;
+                handleTerminalCommand(cmd, activeUser);
+                termInput.value = '';
+                termOutput.scrollTop = termOutput.scrollHeight;
+            }
+        });
 
-            term.writeln("\x1b[32m[i] Hyprland EWW Widget Daemon initialized.\x1b[0m");
-            term.writeln("\x1b[34m[i] Type 'neofetch' or 'help'.\x1b[0m\r\n");
-            term.write("rxyhn@arch:~# ");
-
-            let buffer = "";
-            term.onKey(({ key, domEvent }) => {
-                const printable = !domEvent.altKey && !domEvent.ctrlKey && !domEvent.metaKey;
-                if (domEvent.keyCode === 13) {
-                    term.writeln("");
-                    processCmd(buffer.trim());
-                    buffer = "";
-                    term.write("rxyhn@arch:~# ");
-                } else if (domEvent.keyCode === 8) {
-                    if (buffer.length > 0) {
-                        buffer = buffer.slice(0, -1);
-                        term.write('\b \b');
-                    }
-                } else if (printable) {
-                    buffer += key;
-                    term.write(key);
-                }
-            });
-        }
-
-        function processCmd(c) {
-            if (!c) return;
-            if (c === 'help') {
-                term.writeln("Available commands: neofetch, clear, uptime, whoami");
-            } else if (c === 'neofetch') {
-                term.writeln("       /\\       rxyhn@arch-linux");
-                term.writeln("      /  \\      ---------------- ");
-                term.writeln("     /\\   \\     WM: Hyprland");
-                term.writeln("    /______\\    Widgets: EWW");
-            } else if (c === 'clear') {
-                term.clear();
-            } else if (c === 'whoami') {
-                term.writeln("rxyhn");
-            } else if (c === 'uptime') {
-                term.writeln("up 81h 32m");
-            } else {
-                term.writeln(`zsh: command not found: ${c}`);
+        function handleTerminalCommand(cmd, user) {
+            let parts = cmd.split(' ');
+            switch(parts[0]) {
+                case 'help':
+                    termOutput.innerText += "Available scripts: neofetch, clear, date, uname, whoami, logout, reboot\n";
+                    break;
+                case 'neofetch':
+                    termOutput.innerText += `     _...._       OS: Selene OS x86_64-wasm\n   .:::::::.      User: ${user}\n  :::::::::::     Kernel: 6.1.0-selene\n  \`::::::::'      Shell: zsh 5.9\n   \`\\\':::\'''\n`;
+                    break;
+                case 'clear':
+                    termOutput.innerText = "";
+                    break;
+                case 'whoami':
+                    termOutput.innerText += user + "\n";
+                    break;
+                case 'uname':
+                    termOutput.innerText += "Linux selene-node 6.1.0-generic x86_64 GNU/Linux\n";
+                    break;
+                case 'logout':
+                    logoutSession();
+                    break;
+                case 'reboot':
+                    termOutput.innerText += "Rebooting kernel environment...\n";
+                    setTimeout(() => location.reload(), 1000);
+                    break;
+                case '':
+                    break;
+                default:
+                    termOutput.innerText += `zsh: command not found: ${parts[0]}\n`;
             }
         }
     </script>
