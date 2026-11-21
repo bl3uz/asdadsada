@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AestheticArch // Hyprland Rice</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/xterm@5.3.0/css/xterm.css" />
+    <script src="https://cdn.jsdelivr.net/npm/xterm@5.3.0/lib/xterm.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xterm-addon-fit@0.8.0/lib/xterm-addon-fit.js"></script>
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap');
+
+        body {
+            background-color: #1a1b26;
+            color: #c0caf5;
+            font-family: 'JetBrains Mono', monospace;
+            /* Exact grid tile background from screenshot */
+            background-image: 
+                linear-gradient(to right, rgba(122, 162, 247, 0.04) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(122, 162, 247, 0.04) 1px, transparent 1px);
+            background-size: 36px 36px;
+            overflow: hidden;
+            height: 100vh;
+            margin: 0;
+            display: flex;
+        }
+
+        /* Distinct thick borders and deep background blocks matching rxyhn's ricing style */
+        .rice-box {
+            background-color: #1f2335;
+            border: 2px solid #292e42;
+            border-radius: 8px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+        }
+
+        .left-bar {
+            background-color: #16161e;
+            border-right: 2px solid #292e42;
+        }
+
+        /* Scrollbars */
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-thumb { background: #414868; border-radius: 2px; }
+    </style>
+</head>
+<body>
+
+    <!-- Far-Left Hyprland Workspace / Dock Bar -->
+    <aside class="left-bar w-14 h-screen flex flex-col justify-between items-center py-5 z-30 select-none flex-shrink-0">
+        <div class="flex flex-col items-center gap-4 text-xs font-bold text-[#7aa2f7]">
+            <span class="cursor-pointer">🚀</span>
+        </div>
+        <div class="flex flex-col items-center gap-3 text-xs">
+            <span id="ws-btn-1" class="w-6 h-6 flex items-center justify-center rounded bg-[#292e42] text-[#7aa2f7] font-bold cursor-pointer" onclick="switchWorkspace(1)">1</span>
+            <span id="ws-btn-2" class="w-6 h-6 flex items-center justify-center rounded text-[#565f89] hover:text-white cursor-pointer" onclick="switchWorkspace(2)">2</span>
+        </div>
+        <div class="flex flex-col items-center gap-4 text-sm text-[#f7768e]">
+            <span class="cursor-pointer hover:scale-110 transition" title="Power" onclick="alert('Shutting down system...')">⏻</span>
+            <span class="text-[9px] text-[#565f89] -rotate-90 font-bold tracking-widest" id="dock-clock">18:28</span>
+        </div>
+    </aside>
+
+    <!-- Main Viewport Container -->
+    <div class="flex-1 p-6 relative overflow-hidden flex items-center justify-center">
+
+        <!-- ================= WORKSPACE 1 (Top Image Layout) ================= -->
+        <div id="workspace-1" class="w-full max-w-5xl h-[520px] hidden grid-cols-12 gap-4 items-center">
+            
+            <!-- Left side vertical stack -->
+            <div class="col-span-4 flex flex-col gap-4">
+                <div class="rice-box p-4 text-center">
+                    <p class="text-[10px] text-[#565f89]">rxyhn@aestheticarch</p>
+                    <p class="text-xs font-bold text-[#7aa2f7] mt-1">~/Tokyo-Night/</p>
+                </div>
+                <div class="rice-box p-6 text-center">
+                    <h1 class="text-2xl font-black tracking-widest text-[#7dcfff]">AESTHETIC</h1>
+                </div>
+                <div class="rice-box p-4 flex justify-between items-center text-xs">
+                    <div>
+                        <p class="text-[#7aa2f7] font-bold">Arch Info</p>
+                        <p class="text-[10px] text-[#565f89] mt-1">os: linux</p>
+                        <p class="text-[10px] text-[#565f89]">wm: hyprland</p>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-xs font-bold text-[#f7768e]">974 / 3532 MB</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right side code editor window layout -->
+            <div class="col-span-8 rice-box h-full flex flex-col overflow-hidden">
+                <div class="bg-[#16161e] px-4 py-2 border-b border-[#292e42] flex justify-between items-center text-xs">
+                    <span class="text-[#565f89]">nvim init.lua</span>
+                    <span class="text-[#7aa2f7]">lua/config</span>
+                </div>
+                <div class="p-4 bg-[#141419] font-mono text-[11px] text-[#565f89] flex-1 overflow-y-auto leading-relaxed">
+                    <p class="text-[#bb9af7]">1 <span class="text-[#c0caf5]">-- Maintained By https://github.com/rxyhn</span></p>
+                    <p class="text-[#bb9af7]">2 <span class="text-[#c0caf5]">local defcustom = os.getenv("HOME") .. "/.config/eww/"</span></p>
+                    <p class="text-[#bb9af7]">3 </p>
+                    <p class="text-[#bb9af7]">4 <span class="text-[#e0af68]">local</span> widgets = require("eww.widgets")</p>
+                    <p class="text-[#bb9af7]">5 widgets.setup({</p>
+                    <p class="text-[#bb9af7]">6     bar = { position = "left", size = "14px" },</p>
+                    <p class="text-[#bb9af7]">7     theme = "tokyo-night-dark",</p>
+                    <p class="text-[#bb9af7]">8     animation = { enabled = true, speed = 0.15 }</p>
+                    <p class="text-[#bb9af7]">9 })</p>
+                </div>
+            </div>
+
+        </div>
+
+
+        <!-- ================= WORKSPACE 2 (Bottom Image Layout - Exact Match) ================= -->
+        <div id="workspace-2" class="w-full max-w-[960px] h-[520px] grid grid-cols-12 gap-3.5 items-center">
+            
+            <!-- Column 1: Big Profile Card -->
+            <div class="col-span-4 rice-box p-6 flex flex-col items-center text-center justify-center h-full">
+                <div class="w-28 h-28 rounded-xl bg-[#292e42] overflow-hidden border-2 border-[#414868] mb-4">
+                    <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=300" alt="avatar" class="w-full h-full object-cover contrast-125 grayscale">
+                </div>
+                <h2 class="text-sm font-bold text-white tracking-wide">AestheticArch</h2>
+                <p class="text-xs text-[#565f89] mt-0.5">rxyhn</p>
+            </div>
+
+            <!-- Column 2 & 3 Center Grid Area -->
+            <div class="col-span-6 grid grid-cols-6 gap-3.5 h-full">
+                
+                <!-- 4 Circular Gauges (Top Row) -->
+                <div class="rice-box col-span-3 p-3 flex flex-col items-center justify-center">
+                    <div class="w-10 h-10 rounded-full border-4 border-[#7dcfff] border-t-transparent flex items-center justify-center text-[10px] font-bold text-[#7dcfff]">24%</div>
+                    <span class="text-[10px] text-[#565f89] mt-2">CPU</span>
+                </div>
+                <div class="rice-box col-span-3 p-3 flex flex-col items-center justify-center">
+                    <div class="w-10 h-10 rounded-full border-4 border-[#bb9af7] border-t-transparent flex items-center justify-center text-[10px] font-bold text-[#bb9af7]">68%</div>
+                    <span class="text-[10px] text-[#565f89] mt-2">Volume</span>
+                </div>
+                <div class="rice-box col-span-3 p-3 flex flex-col items-center justify-center">
+                    <div class="w-10 h-10 rounded-full border-4 border-[#9ece6a] border-t-transparent flex items-center justify-center text-[10px] font-bold text-[#9ece6a]">82%</div>
+                    <span class="text-[10px] text-[#565f89] mt-2">Memory</span>
+                </div>
+                <div class="rice-box col-span-3 p-3 flex flex-col items-center justify-center">
+                    <div class="w-10 h-10 rounded-full border-4 border-[#e0af68] border-t-transparent flex items-center justify-center text-[10px] font-bold text-[#e0af68]">45%</div>
+                    <span class="text-[10px] text-[#565f89] mt-2">Light</span>
+                </div>
+
+                <!-- Clock Card -->
+                <div class="rice-box col-span-6 p-3 flex flex-col items-center justify-center">
+                    <div class="text-2xl font-black text-[#7dcfff] tracking-widest" id="live-clock">18:28</div>
+                    <div class="text-[10px] text-[#565f89] mt-0.5" id="live-date">02/17/22</div>
+                </div>
+
+                <!-- Quote Card (Bottom Left) -->
+                <div class="rice-box col-span-6 p-4 flex flex-col justify-center">
+                    <p class="text-[10px] italic text-[#c0caf5] leading-relaxed">"It is through science that we prove, but through intuition that we discover."</p>
+                    <p class="text-[9px] text-[#7aa2f7] mt-1.5 text-right">— Henri Poincaré</p>
+                </div>
+
+                <!-- Weather Card (Bottom Right) -->
+                <div class="rice-box col-span-6 p-4 flex flex-col justify-between">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <span class="text-[10px] font-bold text-[#e0af68]">Thursday</span>
+                            <div class="text-xs font-bold text-white mt-0.5">🌧️ 27°C</div>
+                        </div>
+                        <div class="text-right text-[9px] text-[#565f89]">
+                            <div>Host: Sleep in 81h</div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Column 4: Music Player Box + Right Dock Icons Column -->
+            <div class="col-span-2 flex flex-col gap-3.5 h-full">
+                
+                <!-- Music Cassette Widget -->
+                <div class="rice-box p-3.5 flex flex-col justify-between flex-1">
+                    <div class="flex justify-between items-center text-[10px]">
+                        <span class="text-[#bb9af7] font-bold">Offline</span>
+                    </div>
+                    <div class="my-1 text-center">
+                        <div class="w-12 h-12 mx-auto bg-[#16161e] border border-[#292e42] rounded flex items-center justify-center text-lg mb-1">📼</div>
+                        <p class="text-[10px] font-bold text-white">Nothing Playing</p>
+                    </div>
+                    <div class="flex items-center justify-around text-xs text-[#7aa2f7] pt-2 border-t border-[#292e42]">
+                        <span class="cursor-pointer hover:text-white">⏮</span>
+                        <span class="font-bold cursor-pointer hover:text-white" id="play-btn" onclick="togglePlay()">▶</span>
+                        <span class="cursor-pointer hover:text-white">⏭</span>
+                    </div>
+                </div>
+
+                <!-- Vertical App Dock Column -->
+                <div class="rice-box p-2.5 flex flex-col justify-around items-center text-sm">
+                    <span class="cursor-pointer hover:text-white" title="Reload" onclick="location.reload()">🔄</span>
+                    <span class="cursor-pointer hover:text-[#f7768e]" title="Reddit" onclick="window.open('https://reddit.com','_blank')">🌐</span>
+                    <span class="cursor-pointer hover:text-[#7aa2f7]" title="Telegram" onclick="window.open('https://telegram.org','_blank')">✈️</span>
+                    <span class="cursor-pointer hover:text-[#9ece6a]" title="Terminal" onclick="toggleTerminal()">💻</span>
+                    <span class="cursor-pointer hover:text-[#7aa2f7]" title="Discord" onclick="window.open('https://discord.com','_blank')">💬</span>
+                    <span class="cursor-pointer hover:text-white" title="GitHub" onclick="window.open('https://github.com','_blank')">🐱</span>
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- Interactive Terminal Window Overlay -->
+    <div id="terminal-window" class="absolute top-10 left-20 w-[650px] h-[350px] rice-box hidden flex flex-col z-50">
+        <div class="bg-[#16161e] px-4 py-2 flex justify-between items-center border-b border-[#292e42]">
+            <span class="text-xs text-[#7aa2f7] font-bold">kitty ~ zsh // terminal</span>
+            <button onclick="toggleTerminal()" class="text-xs text-[#f7768e] font-bold cursor-pointer">[X]</button>
+        </div>
+        <div class="flex-1 p-2 bg-[#1a1b26] overflow-hidden" id="xterm-container"></div>
+    </div>
+
+    <!-- Script Engine -->
+    <script>
+        // Workspace Switcher Logic (Lets you toggle between top and bottom layout pictures)
+        function switchWorkspace(num) {
+            const ws1 = document.getElementById('workspace-1');
+            const ws2 = document.getElementById('workspace-2');
+            const btn1 = document.getElementById('ws-btn-1');
+            const btn2 = document.getElementById('ws-btn-2');
+
+            if (num === 1) {
+                ws1.style.display = 'grid';
+                ws2.style.display = 'none';
+                btn1.className = "w-6 h-6 flex items-center justify-center rounded bg-[#292e42] text-[#7aa2f7] font-bold cursor-pointer";
+                btn2.className = "w-6 h-6 flex items-center justify-center rounded text-[#565f89] hover:text-white cursor-pointer";
+            } else {
+                ws1.style.display = 'none';
+                ws2.style.display = 'grid';
+                btn2.className = "w-6 h-6 flex items-center justify-center rounded bg-[#292e42] text-[#7aa2f7] font-bold cursor-pointer";
+                btn1.className = "w-6 h-6 flex items-center justify-center rounded text-[#565f89] hover:text-white cursor-pointer";
+            }
+        }
+
+        // Initialize default view to Workspace 2 (the bottom image layout)
+        switchWorkspace(2);
+
+        // Clock & Date loop
+        function updateClock() {
+            const now = new Date();
+            const timeStr = now.toTimeString().split(' ')[0].slice(0, 5);
+            document.getElementById('live-clock').innerText = timeStr;
+            document.getElementById('dock-clock').innerText = timeStr;
+            
+            const mm = String(now.getMonth() + 1).padStart(2, '0');
+            const dd = String(now.getDate()).padStart(2, '0');
+            const yy = String(now.getFullYear()).slice(-2);
+            document.getElementById('live-date').innerText = `${mm}/${dd}/${yy}`;
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        let isPlaying = false;
+        function togglePlay() {
+            isPlaying = !isPlaying;
+            document.getElementById('play-btn').innerText = isPlaying ? '⏸' : '▶';
+        }
+
+        // Terminal Handling Logic
+        let termInitialized = false;
+        let term, fitAddon;
+
+        function toggleTerminal() {
+            const win = document.getElementById('terminal-window');
+            if (win.classList.contains('hidden')) {
+                win.classList.remove('hidden');
+                if (!termInitialized) {
+                    initTerminal();
+                    termInitialized = true;
+                } else {
+                    fitAddon.fit();
+                }
+            } else {
+                win.classList.add('hidden');
+            }
+        }
+
+        function initTerminal() {
+            term = new Terminal({
+                cursorBlink: true,
+                fontSize: 12,
+                fontFamily: 'JetBrains Mono, monospace',
+                theme: {
+                    background: '#1a1b26',
+                    foreground: '#c0caf5',
+                    cursor: '#f7768e',
+                    black: '#15161e',
+                    red: '#f7768e',
+                    green: '#9ece6a',
+                    yellow: '#e0af68',
+                    blue: '#7aa2f7',
+                    magenta: '#bb9af7',
+                    cyan: '#7dcfff',
+                    white: '#a9b1d6'
+                }
+            });
+
+            fitAddon = new FitAddon.FitAddon();
+            term.loadAddon(fitAddon);
+            term.open(document.getElementById('xterm-container'));
+            fitAddon.fit();
+
+            term.writeln("\x1b[32m[i] Hyprland EWW Widget Daemon initialized.\x1b[0m");
+            term.writeln("\x1b[34m[i] Type 'neofetch' or 'help'.\x1b[0m\r\n");
+            term.write("rxyhn@arch:~# ");
+
+            let buffer = "";
+            term.onKey(({ key, domEvent }) => {
+                const printable = !domEvent.altKey && !domEvent.ctrlKey && !domEvent.metaKey;
+                if (domEvent.keyCode === 13) {
+                    term.writeln("");
+                    processCmd(buffer.trim());
+                    buffer = "";
+                    term.write("rxyhn@arch:~# ");
+                } else if (domEvent.keyCode === 8) {
+                    if (buffer.length > 0) {
+                        buffer = buffer.slice(0, -1);
+                        term.write('\b \b');
+                    }
+                } else if (printable) {
+                    buffer += key;
+                    term.write(key);
+                }
+            });
+        }
+
+        function processCmd(c) {
+            if (!c) return;
+            if (c === 'help') {
+                term.writeln("Available commands: neofetch, clear, uptime, whoami");
+            } else if (c === 'neofetch') {
+                term.writeln("       /\\       rxyhn@arch-linux");
+                term.writeln("      /  \\      ---------------- ");
+                term.writeln("     /\\   \\     WM: Hyprland");
+                term.writeln("    /______\\    Widgets: EWW");
+            } else if (c === 'clear') {
+                term.clear();
+            } else if (c === 'whoami') {
+                term.writeln("rxyhn");
+            } else if (c === 'uptime') {
+                term.writeln("up 81h 32m");
+            } else {
+                term.writeln(`zsh: command not found: ${c}`);
+            }
+        }
+    </script>
+</body>
+</html>
