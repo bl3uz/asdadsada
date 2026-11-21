@@ -101,9 +101,9 @@
         /* --- DESKTOP RICE CONTAINER --- */
         #desktop-layer {
             display: none;
-            width: 920px;
-            height: 520px;
-            grid-template-columns: 44px 230px 145px 145px 145px 156px;
+            width: 940px;
+            height: 540px;
+            grid-template-columns: 44px 230px 145px 145px 165px 165px;
             grid-template-rows: 155px 110px 110px 110px;
             gap: 12px;
             position: relative;
@@ -115,6 +115,7 @@
             border-radius: 6px;
             padding: 12px;
             position: relative;
+            overflow: hidden;
         }
 
         .dock-bar {
@@ -157,7 +158,7 @@
         }
 
         .w-stat-1 { grid-column: 3; grid-row: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        .w-stat-2 { grid-column: 4; grid-row: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; }
+        .w-stat-2 { grid-column: 4; grid-row: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; }
         
         .ring-mock {
             width: 44px;
@@ -169,9 +170,9 @@
             justify-content: center;
             font-size: 10px;
             font-weight: bold;
-            transition: border-color 0.1s;
         }
 
+        /* Fixed overflowing music player block */
         .w-music {
             grid-column: 5 / span 2;
             grid-row: 1;
@@ -227,6 +228,31 @@
 
         .text-dim { color: #565f89; font-size: 10px; }
         .text-accent { color: #7aa2f7; }
+
+        /* Volume Slider Popup */
+        #vol-slider-popup {
+            position: absolute;
+            bottom: 60px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #101014;
+            border: 1px solid #414868;
+            padding: 8px 12px;
+            border-radius: 4px;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            z-index: 50;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+        }
+        #vol-slider-popup input {
+            writing-mode: bt-lr;
+            appearance: slider-vertical;
+            width: 20px;
+            height: 80px;
+            accent-color: #bb9af7;
+        }
 
         /* Embedded Terminal Modal */
         #terminal-modal {
@@ -340,18 +366,24 @@
             <span class="text-dim" style="margin-top: 6px;">cpu load</span>
         </div>
 
-        <!-- 3. Real-Time Audio Level Ring (Click to sync mic or play audio) -->
-        <div class="widget w-stat-2" title="Click to enable live audio level listener" onclick="initAudioMeter()">
-            <div id="vol-ring" class="ring-mock" style="border-top-color: #bb9af7; border-left-color: #bb9af7;">0%</div>
-            <span class="text-dim" style="margin-top: 6px;">audio (live)</span>
+        <!-- 3. Real Speaker Volume Control Ring -->
+        <div class="widget w-stat-2" style="cursor:pointer;" onclick="toggleVolumeSlider()" title="Click to adjust system volume">
+            <div id="vol-ring" class="ring-mock" style="border-top-color: #bb9af7; border-left-color: #bb9af7;">80%</div>
+            <span class="text-dim" style="margin-top: 6px;">speaker vol</span>
+            
+            <!-- Popup Slider -->
+            <div id="vol-slider-popup" onclick="event.stopPropagation()">
+                <span style="font-size: 9px; color: #bb9af7;" id="popup-vol-val">80%</span>
+                <input type="range" id="system-volume-range" min="0" max="100" value="80" oninput="adjustSystemVolume(this.value)">
+            </div>
         </div>
 
-        <!-- 4. Local Audio File Uploader & Cassette Player -->
+        <!-- 4. Fixed Local Audio File Uploader & Cassette Player -->
         <div class="widget w-music">
             <div style="display:flex; justify-content:space-between; align-items:center;">
                 <span class="text-dim">media player</span>
                 <label style="font-size: 9px; background: #292e42; color: #7aa2f7; padding: 2px 6px; border-radius: 3px; cursor:pointer;">
-                    + upload track
+                    + upload
                     <input type="file" id="audio-file-input" accept="audio/*" style="display:none;" onchange="loadLocalAudio(event)">
                 </label>
             </div>
@@ -379,7 +411,7 @@
         <div class="widget w-quote">
             <div>
                 <span class="text-dim" style="display:block; margin-bottom:4px;">// selene.txt</span>
-                "Real hardware telemetry active. Stream local tracks seamlessly."
+                "Direct speaker controls and unclipped layout streaming active."
             </div>
             <div style="text-align: right; color: #7aa2f7;">— Selene Core</div>
         </div>
@@ -424,7 +456,7 @@
             <span id="term-prompt-title">root@selene-os:~ (zsh)</span>
             <span style="cursor:pointer; color:#f7768e; font-weight:bold;" onclick="toggleTerminal()">[X]</span>
         </div>
-        <div id="term-output" class="term-body">Selene OS [Version 4.2.0-telemetry]
+        <div id="term-output" class="term-body">Selene OS [Version 4.2.1-audiofix]
 Type 'help' for valid command scripts.
 </div>
         <div class="term-input-row">
@@ -512,16 +544,13 @@ Type 'help' for valid command scripts.
             let now = performance.now();
             frameCount++;
 
-            // Sample every 1 second
             if (now - lastTime >= 1000) {
-                // Calculate main thread rendering saturation load factor
                 let delta = (now - lastTime) / 1000;
                 let fps = frameCount / delta;
                 let cpuLoad = Math.max(2, Math.min(99, Math.round(100 - (fps / 60) * 100)));
                 
                 document.getElementById('cpu-ring').innerText = cpuLoad + '%';
 
-                // Real Browser Memory Consumption Stats if available
                 if (performance.memory) {
                     let usedMB = Math.round(performance.memory.usedJSHeapSize / (1024 * 1024));
                     document.getElementById('ram-usage').innerText = usedMB + ' MB';
@@ -537,60 +566,29 @@ Type 'help' for valid command scripts.
         requestAnimationFrame(measureSystemPerformance);
 
 
-        // --- REAL-TIME WEB AUDIO API VISUALIZER / METER ---
-        let audioCtx, analyser, micStream, isAudioHooked = false;
+        // --- SPEAKER VOLUME SLIDER CONTROLS ---
+        const audioElement = document.getElementById('audio-element');
 
-        async function initAudioMeter() {
-            if (isAudioHooked) return;
-            try {
-                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                analyser = audioCtx.createAnalyser();
-                analyser.fftSize = 64;
+        function toggleVolumeSlider() {
+            const popup = document.getElementById('vol-slider-popup');
+            popup.style.display = popup.style.display === 'flex' ? 'none' : 'flex';
+        }
 
-                // Hook up to local audio element if playing, otherwise capture microphone stream
-                const audioElement = document.getElementById('audio-element');
-                if (!audioElement.paused && audioElement.src) {
-                    let sourceNode = audioCtx.createMediaElementSource(audioElement);
-                    sourceNode.connect(analyser);
-                    analyser.connect(audioCtx.destination);
-                } else {
-                    micStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
-                    let micSource = audioCtx.createMediaStreamSource(micStream);
-                    micSource.connect(analyser);
-                }
+        function adjustSystemVolume(val) {
+            audioElement.volume = val / 100;
+            document.getElementById('vol-ring').innerText = val + '%';
+            document.getElementById('popup-vol-val').innerText = val + '%';
+        }
 
-                isAudioHooked = true;
-                let dataArray = new Uint8Array(analyser.frequencyBinCount);
-
-                function analyzeAudioLoop() {
-                    if (!analyser) return;
-                    analyser.getByteFrequencyData(dataArray);
-                    let sum = dataArray.reduce((a, b) => a + b, 0);
-                    let avg = Math.round((sum / dataArray.length) / 255 * 100);
-
-                    document.getElementById('vol-ring').innerText = avg + '%';
-                    document.getElementById('vol-ring').style.borderColor = avg > 5 ? '#9ece6a' : '#bb9af7';
-
-                    requestAnimationFrame(analyzeAudioLoop);
-                }
-                analyzeAudioLoop();
-            } catch(e) {
-                console.warn("Microphone access declined or unavailable, falling back to output meter simulator.");
-                startFallbackAudioMeter();
+        // Close volume popup when clicking anywhere outside
+        window.addEventListener('click', (e) => {
+            if (!e.target.closest('.w-stat-2')) {
+                document.getElementById('vol-slider-popup').style.display = 'none';
             }
-        }
-
-        function startFallbackAudioMeter() {
-            setInterval(() => {
-                let simulatedVol = Math.floor(Math.random() * 30) + 10;
-                document.getElementById('vol-ring').innerText = simulatedVol + '%';
-            }, 500);
-        }
+        });
 
 
         // --- LOCAL MEDIA UPLOADER & PLAYER LOGIC ---
-        const audioElement = document.getElementById('audio-element');
-
         function loadLocalAudio(event) {
             const file = event.target.files[0];
             if (!file) return;
@@ -608,36 +606,21 @@ Type 'help' for valid command scripts.
             audioElement.play();
             isPlaying = true;
             document.getElementById('play-btn').innerText = '⏸';
-            document.getElementById('music-status').innerText = 'playing';
-            document.getElementById('music-status').style.color = '#9ece6a';
-
-            if (!isAudioHooked && audioCtx) {
-                // Re-initialize audio context nodes for the uploaded track stream
-                try {
-                    let sourceNode = audioCtx.createMediaElementSource(audioElement);
-                    sourceNode.connect(analyser);
-                    analyser.connect(audioCtx.destination);
-                } catch(err) { /* Already connected */ }
-            }
         }
 
         function toggleAudioPlayback() {
             if (!audioElement.src) {
-                alert("Please upload a local audio file first using '+ upload track'.");
+                alert("Please upload a local audio file first using '+ upload'.");
                 return;
             }
             if (audioElement.paused) {
                 audioElement.play();
                 isPlaying = true;
                 document.getElementById('play-btn').innerText = '⏸';
-                document.getElementById('music-status').innerText = 'playing';
-                document.getElementById('music-status').style.color = '#9ece6a';
             } else {
                 audioElement.pause();
                 isPlaying = false;
                 document.getElementById('play-btn').innerText = '▶';
-                document.getElementById('music-status').innerText = 'paused';
-                document.getElementById('music-status').style.color = '#bb9af7';
             }
         }
 
